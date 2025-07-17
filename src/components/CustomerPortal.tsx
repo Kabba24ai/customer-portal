@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AccountView from './AccountView';
 import OrdersView from './OrdersView';
 import CreditAccountView from './CreditAccountView_Credit1';
+import AccountBillingSummary from './AccountBillingSummary';
 import {
   User, CreditCard, FileText, Settings, Bell, Download, Eye, Calendar, ShieldCheck,
   DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, Phone, Mail,
@@ -1039,6 +1040,14 @@ const CustomerPortal = () => {
             formatCurrency={formatCurrency}
             formatDate={formatDate}
             viewMode={viewMode}
+          />
+        )}
+        
+        {/* Billing Summary Tab - Admin Only */}
+        {activeTab === 'billing-summary' && viewMode === 'admin' && (
+          <AccountBillingSummary 
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
           />
         )}
       </div>
