@@ -3,7 +3,7 @@ import AccountView from './AccountView';
 import OrdersView from './OrdersView';
 import CreditAccountView from './CreditAccountView_Credit1';
 import {
-  User, CreditCard, FileText, Settings, Bell, Download, Eye, Calendar,
+  User, CreditCard, FileText, Settings, Bell, Download, Eye, Calendar, ShieldCheck,
   DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, Phone, Mail,
   MapPin, Building, Globe, Plus, Edit, Trash2, Upload, X, Truck
 } from 'lucide-react';
@@ -264,7 +264,7 @@ const CustomerPortal = () => {
               <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                 customerData?.tax_exempt ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
               }`}>
-                <FileText className="w-4 h-4 mr-1" />
+                <ShieldCheck className="w-4 h-4 mr-1" />
                 {customerData?.tax_exempt ? 'Tax Exempt' : 'Taxable'}
               </div>
               {customerData?.tax_exempt && customerData?.tax_document && (
@@ -678,7 +678,7 @@ const CustomerPortal = () => {
               <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                 customerData?.tax_exempt ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
               }`}>
-                <FileText className="w-4 h-4 mr-1" />
+                <ShieldCheck className="w-4 h-4 mr-1" />
                 {customerData?.tax_exempt ? 'Tax Exempt' : 'Taxable'}
               </div>
               {customerData?.tax_exempt && customerData?.tax_document && (

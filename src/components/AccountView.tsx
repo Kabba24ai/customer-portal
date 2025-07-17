@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  User, Building, Phone, Mail, MapPin, Globe, Edit, Save, X, 
+  User, Building, Phone, Mail, MapPin, Globe, Edit, Save, X, ShieldCheck,
   Upload, FileText, Calendar, Shield, CreditCard, AlertCircle, 
   CheckCircle, Clock, UserCheck, DollarSign, Users, Award
 } from 'lucide-react';
@@ -905,7 +905,7 @@ const AccountView = ({ customerData, formatDate, formatCurrency, viewMode = 'cus
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-            <FileText className="w-5 h-5 mr-2" />
+            <ShieldCheck className="w-5 h-5 mr-2" />
             Tax Exempt Status
             {viewMode === 'admin' && (
               <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Admin Control</span>
