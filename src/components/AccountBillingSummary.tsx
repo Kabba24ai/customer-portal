@@ -22,6 +22,25 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
   const [sortField, setSortField] = useState('daysAging');
   const [sortDirection, setSortDirection] = useState('desc');
 
+  // Format phone number as user types
+  const formatPhoneNumber = (value) => {
+    // Remove all non-digits
+    const phoneNumber = value.replace(/\D/g, '');
+    
+    // Format based on length
+    if (phoneNumber.length <= 3) {
+      return phoneNumber;
+    } else if (phoneNumber.length <= 6) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    }
+  };
+
+  const handlePhoneSearchChange = (e) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setPhoneSearch(formatted);
+  };
   // Save credit filter preferences to localStorage
   const handleCreditApprovedChange = (checked) => {
     setCreditApprovedChecked(checked);
@@ -358,9 +377,10 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
               <input
                 type="text"
                 value={phoneSearch}
-                onChange={(e) => setPhoneSearch(e.target.value)}
+                onChange={handlePhoneSearchChange}
+                maxLength={14}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="Search phone numbers..."
+                placeholder="(555) 123-4567"
               />
             </div>
           </div>
