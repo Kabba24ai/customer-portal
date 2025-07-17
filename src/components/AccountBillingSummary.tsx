@@ -137,6 +137,20 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
       daysAging: 90,
       creditApproved: true,
       status: 'Bad Debt'
+    },
+    {
+      id: 7,
+      customerName: 'Robert Martinez',
+      companyName: 'Martinez Construction',
+      phone: '(555) 789-0123',
+      companyPhone: '(555) 789-0700',
+      balance: 3250.00,
+      lastPayment: 150.00,
+      lastPaymentDate: '2024-11-20',
+      paymentDue: 3250.00,
+      daysAging: 25,
+      creditApproved: true,
+      status: 'Suspended'
     }
   ];
 
@@ -159,7 +173,7 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
       if (alertFilter === '30-days') alertMatch = customer.daysAging >= 30 && customer.daysAging < 45;
       else if (alertFilter === '45-days') alertMatch = customer.daysAging >= 45 && customer.daysAging < 60;
       else if (alertFilter === '60-days') alertMatch = customer.daysAging >= 60;
-      else if (alertFilter === 'bad-debt') alertMatch = customer.status === 'Bad Debt';
+      else if (alertFilter === 'bad-debt') alertMatch = customer.status === 'Bad Debt' || customer.status === 'Suspended';
 
       // Credit filter
       let creditMatch = true;
@@ -233,7 +247,7 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
   };
 
   const getAlertColor = (daysAging, status) => {
-    if (status === 'Bad Debt') return 'bg-red-100 text-red-800';
+    if (status === 'Bad Debt' || status === 'Suspended') return 'bg-red-100 text-red-800';
     if (daysAging >= 60) return 'bg-red-100 text-red-800';
     if (daysAging >= 45) return 'bg-orange-100 text-orange-800';
     if (daysAging >= 30) return 'bg-yellow-100 text-yellow-800';
@@ -241,7 +255,7 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
   };
 
   const getAlertIcon = (daysAging, status) => {
-    if (status === 'Bad Debt') return <AlertTriangle className="w-4 h-4" />;
+    if (status === 'Bad Debt' || status === 'Suspended') return <AlertTriangle className="w-4 h-4" />;
     if (daysAging >= 45) return <AlertTriangle className="w-4 h-4" />;
     if (daysAging >= 30) return <Clock className="w-4 h-4" />;
     return <CheckCircle className="w-4 h-4" />;
@@ -251,7 +265,7 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
   const summaryStats = useMemo(() => {
     const totalBalance = filteredAndSortedCustomers.reduce((sum, customer) => sum + customer.balance, 0);
     const totalOverdue = filteredAndSortedCustomers.reduce((sum, customer) => sum + customer.paymentDue, 0);
-    const badDebtCount = filteredAndSortedCustomers.filter(customer => customer.status === 'Bad Debt').length;
+    const badDebtCount = filteredAndSortedCustomers.filter(customer => customer.status === 'Bad Debt' || customer.status === 'Suspended').length;
     const overdueCount = filteredAndSortedCustomers.filter(customer => customer.daysAging >= 30).length;
 
     return {
@@ -397,7 +411,7 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
               <option value="30-days">30-44 Days</option>
               <option value="45-days">45-59 Days</option>
               <option value="60-days">60+ Days</option>
-              <option value="bad-debt">Bad Debt</option>
+              <option value="bad-debt">Bad Debt / Suspended</option>
             </select>
           </div>
 
