@@ -975,7 +975,8 @@ const CustomerPortal = () => {
               { id: 'orders', label: 'Orders', icon: FileText },
               { id: 'customer-account', label: 'Credit Account', icon: DollarSign },
               { id: 'invoices', label: 'Invoices', icon: CreditCard },
-              { id: 'account', label: 'Account', icon: Settings }
+              { id: 'account', label: 'Account', icon: Settings },
+              ...(viewMode === 'admin' ? [{ id: 'billing-summary', label: 'Billing Summary', icon: FileText }] : [])
             ].map((tab) => {
               const Icon = tab.icon;
               return (
