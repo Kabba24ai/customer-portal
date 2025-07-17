@@ -6,12 +6,32 @@ import {
 } from 'lucide-react';
 
 const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [companySearch, setCompanySearch] = useState('');
+  const [phoneSearch, setPhoneSearch] = useState('');
   const [alertFilter, setAlertFilter] = useState('all');
-  const [creditFilter, setCreditFilter] = useState('all');
+  const [creditApprovedChecked, setCreditApprovedChecked] = useState(() => {
+    const saved = localStorage.getItem('creditApprovedFilter');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [creditNoneChecked, setCreditNoneChecked] = useState(() => {
+    const saved = localStorage.getItem('creditNoneFilter');
+    return saved ? JSON.parse(saved) : false;
+  });
   const [balanceSort, setBalanceSort] = useState('highest');
   const [sortField, setSortField] = useState('daysAging');
   const [sortDirection, setSortDirection] = useState('desc');
+
+  // Save credit filter preferences to localStorage
+  const handleCreditApprovedChange = (checked) => {
+    setCreditApprovedChecked(checked);
+    localStorage.setItem('creditApprovedFilter', JSON.stringify(checked));
+  };
+
+  const handleCreditNoneChange = (checked) => {
+    setCreditNoneChecked(checked);
+    localStorage.setItem('creditNoneFilter', JSON.stringify(checked));
+  };
 
   // Mock customer data - would come from API
   const mockCustomers = [
@@ -104,12 +124,16 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
   // Filter and sort customers
   const filteredAndSortedCustomers = useMemo(() => {
     let filtered = mockCustomers.filter(customer => {
-      // Search filter
-      const searchMatch = searchTerm === '' || 
-        customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phone.includes(searchTerm) ||
-        customer.companyPhone.includes(searchTerm);
+      // Search filters
+      const customerMatch = customerSearch === '' || 
+        customer.customerName.toLowerCase().includes(customerSearch.toLowerCase());
+      
+      const companyMatch = companySearch === '' || 
+        customer.companyName.toLowerCase().includes(companySearch.toLowerCase());
+      
+      const phoneMatch = phoneSearch === '' || 
+        customer.phone.includes(phoneSearch) ||
+        customer.companyPhone.includes(phoneSearch);
 
       // Alert filter
       let alertMatch = true;
@@ -120,10 +144,19 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
 
       // Credit filter
       let creditMatch = true;
-      if (creditFilter === 'approved') creditMatch = customer.creditApproved;
-      else if (creditFilter === 'none') creditMatch = !customer.creditApproved;
+      
+      // If both checkboxes are unchecked or both are checked, show all
+      if (!creditApprovedChecked && !creditNoneChecked) {
+        creditMatch = true; // Show all
+      } else if (creditApprovedChecked && !creditNoneChecked) {
+        creditMatch = customer.creditApproved;
+      } else if (!creditApprovedChecked && creditNoneChecked) {
+        creditMatch = !customer.creditApproved;
+      } else {
+        creditMatch = true; // Both checked, show all
+      }
 
-      return searchMatch && alertMatch && creditMatch;
+      return customerMatch && companyMatch && phoneMatch && alertMatch && creditMatch;
     });
 
     // Sort customers
@@ -164,7 +197,7 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
     });
 
     return filtered;
-  }, [mockCustomers, searchTerm, alertFilter, creditFilter, sortField, sortDirection]);
+  }, [mockCustomers, customerSearch, companySearch, phoneSearch, alertFilter, creditApprovedChecked, creditNoneChecked, sortField, sortDirection]);
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -286,18 +319,48 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          {/* Customer Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                placeholder="Customer, Company, Phone..."
+                placeholder="Search customers..."
+              />
+            </div>
+          </div>
+
+          {/* Company Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={companySearch}
+                onChange={(e) => setCompanySearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Search companies..."
+              />
+            </div>
+          </div>
+
+          {/* Phone Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={phoneSearch}
+                onChange={(e) => setPhoneSearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Search phone numbers..."
               />
             </div>
           </div>
@@ -321,15 +384,31 @@ const AccountBillingSummary = ({ formatCurrency, formatDate }) => {
           {/* Credit Type Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Credit Type</label>
-            <select
-              value={creditFilter}
-              onChange={(e) => setCreditFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              <option value="all">All / Both</option>
-              <option value="approved">Credit - Approved</option>
-              <option value="none">Credit - None</option>
-            </select>
+            <div className="space-y-2 pt-2">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={creditApprovedChecked}
+                  onChange={(e) => handleCreditApprovedChange(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">Credit - Approved</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={creditNoneChecked}
+                  onChange={(e) => handleCreditNoneChange(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">Credit - None</span>
+              </label>
+              <div className="text-xs text-gray-500 mt-1">
+                {!creditApprovedChecked && !creditNoneChecked ? 'Showing: All / Both' : 
+                 creditApprovedChecked && creditNoneChecked ? 'Showing: All / Both' :
+                 creditApprovedChecked ? 'Showing: Credit Approved Only' : 'Showing: No Credit Only'}
+              </div>
+            </div>
           </div>
 
           {/* Balance Sort */}
