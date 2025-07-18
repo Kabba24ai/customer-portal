@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Eye, Download, Edit, Truck, Globe, Plus, Trash2, FileText,
-  Calendar, CheckCircle, AlertCircle, X
+  Calendar, CheckCircle, AlertCircle, X, ShieldCheck
 } from 'lucide-react';
 
 const OrdersView = ({ customerData, formatDate, formatCurrency, getOrderStatusColor, viewMode = 'customer' }) => {
