@@ -197,10 +197,13 @@ const InvoiceCreationView = ({
     const [itemData, setItemData] = useState({
       type: addItemType,
       description: '',
+      reason: '',
       quantity: 1,
       unit_price: 0,
       total: 0,
       tax_treatment: 'add-tax',
+      person: '',
+      reference: '',
       notes: ''
     });
 
@@ -231,6 +234,47 @@ const InvoiceCreationView = ({
       handleAddItem(finalItem);
     };
 
+    // Get charge reasons based on item type
+    const getReasonOptions = () => {
+      switch (addItemType) {
+        case 'charge':
+          return [
+            { value: '', label: 'Select charge reason' },
+            { value: 'new-rental', label: 'New Rental' },
+            { value: 'rental-extension', label: 'Rental Extension' },
+            { value: 'damages', label: 'Damages' },
+            { value: 'fuel-charge', label: 'Fuel Charge' },
+            { value: 'cleaning-charge', label: 'Cleaning Charge' },
+            { value: 'missing-items', label: 'Missing Items' },
+            { value: 'product-purchase', label: 'Product Purchase' },
+            { value: 'late-fee', label: 'Late Fee' },
+            { value: 'delivery-fee', label: 'Delivery Fee' }
+          ];
+        case 'discount':
+          return [
+            { value: '', label: 'Select discount reason' },
+            { value: 'volume-discount', label: 'Volume Discount' },
+            { value: 'repeat-customer', label: 'Repeat Customer Discount' },
+            { value: 'damage-waiver', label: 'Damage Waiver Protection' },
+            { value: 'misc-management', label: 'Misc. Management Discount' },
+            { value: 'promotional', label: 'Promotional Discount' },
+            { value: 'loyalty-program', label: 'Loyalty Program Discount' }
+          ];
+        case 'refund':
+          return [
+            { value: '', label: 'Select refund reason' },
+            { value: 'damaged-item', label: 'Damaged Item' },
+            { value: 'wrong-item', label: 'Wrong Item Shipped' },
+            { value: 'customer-cancellation', label: 'Customer Cancellation' },
+            { value: 'overcharge', label: 'Billing Overcharge' },
+            { value: 'duplicate-charge', label: 'Duplicate Charge' },
+            { value: 'defective-product', label: 'Defective Product' },
+            { value: 'other', label: 'Other' }
+          ];
+        default:
+          return [{ value: '', label: 'Select reason' }];
+      }
+    };
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -250,45 +294,27 @@ const InvoiceCreationView = ({
 
           <div className="p-6">
             <div className="space-y-6">
+              {/* Charge Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <input
-                  type="text"
-                  value={itemData.description}
-                  onChange={(e) => setItemData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`Enter ${addItemType} description...`}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {addItemType === 'charge' ? 'Charge Amount' : 
+                   addItemType === 'discount' ? 'Discount Amount' : 'Refund Amount'}
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="number"
-                    value={itemData.quantity}
-                    onChange={(e) => setItemData(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 1 }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="1"
-                    step="1"
+                    value={itemData.unit_price}
+                    onChange={(e) => setItemData(prev => ({ ...prev, unit_price: parseFloat(e.target.value) || 0 }))}
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Unit Price</label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="number"
-                      value={itemData.unit_price}
-                      onChange={(e) => setItemData(prev => ({ ...prev, unit_price: parseFloat(e.target.value) || 0 }))}
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
                 </div>
               </div>
 
+              {/* Sales Tax Treatment - Only for non-tax-exempt customers */}
               {!customerData?.tax_exempt && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">Sales Tax Treatment</label>
@@ -318,7 +344,7 @@ const InvoiceCreationView = ({
                       />
                       <div>
                         <div className="font-medium text-gray-900">Tax Free</div>
-                        <div className="text-sm text-gray-500">No sales tax applied to this item</div>
+                        <div className="text-sm text-gray-500">No sales tax applied to this {addItemType}</div>
                       </div>
                     </label>
                     <label className="flex items-start">
@@ -339,12 +365,13 @@ const InvoiceCreationView = ({
                 </div>
               )}
 
-              {(itemData.quantity > 0 && itemData.unit_price > 0) && (
+              {/* Calculation Preview */}
+              {itemData.unit_price > 0 && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-blue-900 mb-2">Calculation Preview</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-blue-700">Base Amount:</span>
+                      <span className="text-blue-700">Amount:</span>
                       <span className="font-medium text-blue-900">{formatCurrency(breakdown.baseAmount)}</span>
                     </div>
                     {!customerData?.tax_exempt && breakdown.salesTax > 0 && (
@@ -354,12 +381,72 @@ const InvoiceCreationView = ({
                       </div>
                     )}
                     <div className="flex justify-between border-t border-blue-300 pt-1">
-                      <span className="font-medium text-blue-700">Total:</span>
+                      <span className="font-medium text-blue-700">Total Balance Change:</span>
                       <span className="font-bold text-blue-900">{formatCurrency(breakdown.total)}</span>
                     </div>
                   </div>
                 </div>
               )}
+
+              {/* Reason Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {addItemType === 'charge' ? 'Charge Reason' : 
+                   addItemType === 'discount' ? 'Discount Reason' : 'Refund Reason'}
+                </label>
+                <select
+                  value={itemData.reason}
+                  onChange={(e) => setItemData(prev => ({ ...prev, reason: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {getReasonOptions().map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <input
+                  type="text"
+                  value={itemData.description}
+                  onChange={(e) => setItemData(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={`Enter ${addItemType} description...`}
+                />
+              </div>
+
+              {/* Person Responsible */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Person Responsible</label>
+                <select
+                  value={itemData.person}
+                  onChange={(e) => setItemData(prev => ({ ...prev, person: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select person responsible</option>
+                  <option value="sarah-johnson">Sarah Johnson</option>
+                  <option value="michael-chen">Michael Chen</option>
+                  <option value="emily-rodriguez">Emily Rodriguez</option>
+                  <option value="david-thompson">David Thompson</option>
+                  <option value="jennifer-williams">Jennifer Williams</option>
+                </select>
+              </div>
+
+              {/* Reference */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reference (Optional)</label>
+                <input
+                  type="text"
+                  value={itemData.reference}
+                  onChange={(e) => setItemData(prev => ({ ...prev, reference: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter reference number or ID..."
+                />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
@@ -382,7 +469,7 @@ const InvoiceCreationView = ({
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={!itemData.description || itemData.unit_price <= 0}
+                disabled={!itemData.description || itemData.unit_price <= 0 || !itemData.reason}
                 className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
                 Add {addItemType === 'charge' ? 'Charge' : addItemType === 'discount' ? 'Discount' : 'Refund'}
