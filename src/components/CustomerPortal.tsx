@@ -3,6 +3,7 @@ import AccountView from './AccountView';
 import OrdersView from './OrdersView';
 import CreditAccountView from './CreditAccountView_Credit1';
 import AccountBillingSummary from './AccountBillingSummary';
+import InvoiceCreationModal from './InvoiceCreationModal';
 import {
   User, CreditCard, FileText, Settings, Bell, Download, Eye, Calendar, ShieldCheck,
   DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, Phone, Mail,
@@ -16,6 +17,7 @@ const CustomerPortal = () => {
   const [customerData, setCustomerData] = useState(null);
   const [viewMode, setViewMode] = useState('customer'); // 'customer' or 'admin'
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('all');
+  const [showInvoiceCreationModal, setShowInvoiceCreationModal] = useState(false);
 
   // Mock customer data - would come from API
   const mockCustomerData = {
@@ -181,6 +183,25 @@ const CustomerPortal = () => {
   const handlePayInvoice = (invoice) => {
     setSelectedInvoice(invoice);
     setShowPaymentModal(true);
+  };
+
+  const handleCreateInvoice = (newInvoice) => {
+    // Here you would make an API call to create the invoice
+    console.log('Creating invoice:', newInvoice);
+    
+    // For demo purposes, add it to the customer data
+    const invoiceWithId = {
+      ...newInvoice,
+      id: Date.now(),
+      invoice_number: newInvoice.invoice_number || `INV-${new Date().getFullYear()}-${String(customerData.invoices.length + 1).padStart(3, '0')}`
+    };
+    
+    setCustomerData(prev => ({
+      ...prev,
+      invoices: [...prev.invoices, invoiceWithId]
+    }));
+    
+    setShowInvoiceCreationModal(false);
   };
 
   const PaymentModal = () => (
@@ -445,7 +466,10 @@ const CustomerPortal = () => {
           </div>
           <div className="flex items-center space-x-4">
             {viewMode === 'admin' && (
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center space-x-2">
+              <button 
+                onClick={() => setShowInvoiceCreationModal(true)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center space-x-2"
+              >
                 <Plus className="w-4 h-4" />
                 <span>Create Invoice</span>
               </button>
@@ -1055,6 +1079,18 @@ const CustomerPortal = () => {
 
       {/* Payment Modal */}
       {showPaymentModal && <PaymentModal />}
+      
+      {/* Invoice Creation Modal */}
+      {showInvoiceCreationModal && (
+        <InvoiceCreationModal
+          isOpen={showInvoiceCreationModal}
+          onClose={() => setShowInvoiceCreationModal(false)}
+          customerData={customerData}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          onCreateInvoice={handleCreateInvoice}
+        />
+      )}
     </div>
   );
 };
