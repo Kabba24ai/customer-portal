@@ -461,28 +461,32 @@ const InvoiceCreationView = ({
                       </button>
                       <button
                         onClick={() => {
-                          const orderItem = {
-                            type: 'order',
-                            description: `${order.primary_product} - Order ${order.order_number}`,
-                            quantity: 1,
-                            unit_price: order.total,
-                            total: order.total,
-                            baseAmount: order.total,
-                            salesTax: 0,
-                            order_id: order.id,
-                            order_number: order.order_number,
-                            order_date: order.date,
-                            order_status: order.status,
-                            payment_status: order.payment_status,
-                            items_count: order.items_count,
-                            notes: `Complete order ${order.order_number} added to invoice`
-                          };
-                          handleAddItem(orderItem);
+                          // Add each product from the order as individual line items
+                          order.products.forEach(product => {
+                            const productItem = {
+                              type: 'order_product',
+                              description: product.name,
+                              quantity: product.quantity,
+                              unit_price: product.unit_price,
+                              total: product.total,
+                              baseAmount: product.total,
+                              salesTax: 0,
+                              order_id: order.id,
+                              order_number: order.order_number,
+                              order_date: order.date,
+                              order_status: order.status,
+                              payment_status: order.payment_status,
+                              product_sku: product.sku,
+                              product_options: product.options,
+                              notes: `From Order ${order.order_number}`
+                            };
+                            handleAddItem(productItem);
+                          });
                         }}
                         className="ml-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm inline-flex items-center"
                       >
                         <Plus className="w-4 h-4 mr-1" />
-                        Add Entire Order
+                        Add All Products
                       </button>
                     </td>
                   </tr>
@@ -533,36 +537,40 @@ const InvoiceCreationView = ({
                 <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-blue-900">Add Complete Order</p>
+                      <p className="text-sm font-medium text-blue-900">Add All Products from Order</p>
                       <p className="text-xs text-blue-700 mt-1">
-                        This will add the entire order as a single line item with total: {formatCurrency(selectedOrder.total)}
+                        This will add each product as individual line items. Total: {formatCurrency(selectedOrder.total)}
                       </p>
                     </div>
                     <button
                       onClick={() => {
-                        const orderItem = {
-                          type: 'order',
-                          description: `${selectedOrder.primary_product} - Order ${selectedOrder.order_number}`,
-                          quantity: 1,
-                          unit_price: selectedOrder.total,
-                          total: selectedOrder.total,
-                          baseAmount: selectedOrder.total,
-                          salesTax: 0,
-                          order_id: selectedOrder.id,
-                          order_number: selectedOrder.order_number,
-                          order_date: selectedOrder.date,
-                          order_status: selectedOrder.status,
-                          payment_status: selectedOrder.payment_status,
-                          items_count: selectedOrder.items_count,
-                          notes: `Complete order ${selectedOrder.order_number} added to invoice`
-                        };
-                        handleAddItem(orderItem);
+                        // Add each product from the order as individual line items
+                        selectedOrder.products.forEach(product => {
+                          const productItem = {
+                            type: 'order_product',
+                            description: product.name,
+                            quantity: product.quantity,
+                            unit_price: product.unit_price,
+                            total: product.total,
+                            baseAmount: product.total,
+                            salesTax: 0,
+                            order_id: selectedOrder.id,
+                            order_number: selectedOrder.order_number,
+                            order_date: selectedOrder.date,
+                            order_status: selectedOrder.status,
+                            payment_status: selectedOrder.payment_status,
+                            product_sku: product.sku,
+                            product_options: product.options,
+                            notes: `From Order ${selectedOrder.order_number}`
+                          };
+                          handleAddItem(productItem);
+                        });
                         setShowOrderDetails(false);
                       }}
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm flex items-center space-x-2"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>Add Complete Order</span>
+                      <span>Add All Products</span>
                     </button>
                   </div>
                 </div>
@@ -752,14 +760,22 @@ const InvoiceCreationView = ({
                           <td className="px-4 py-4">
                             <div>
                               <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                              {item.type === 'order' && (
+                              {item.type === 'order_product' && (
                                 <div className="mt-1">
-                                  <p className="text-xs text-gray-500">Order: {item.order_number}</p>
-                                  <p className="text-xs text-gray-500">Date: {formatDate(item.order_date)}</p>
-                                  <p className="text-xs text-gray-500">Items: {item.items_count} products</p>
-                                  <span className="inline-block bg-blue-100 text-xs text-blue-600 px-2 py-1 rounded mt-1">
-                                    Status: {item.order_status}
-                                  </span>
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <span className="text-xs text-gray-500">SKU: {item.product_sku}</span>
+                                    <span className="text-xs text-gray-500">•</span>
+                                    <span className="text-xs text-gray-500">Order: {item.order_number}</span>
+                                  </div>
+                                  {item.product_options && item.product_options.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                      {item.product_options.map((option, index) => (
+                                        <span key={index} className="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded">
+                                          {option.name}: {option.value}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               {item.notes && (
