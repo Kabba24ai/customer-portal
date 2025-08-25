@@ -3,7 +3,7 @@ import AccountView from './AccountView';
 import OrdersView from './OrdersView';
 import CreditAccountView from './CreditAccountView_Credit1';
 import AccountBillingSummary from './AccountBillingSummary';
-import InvoiceCreationModal from './InvoiceCreationModal';
+import InvoiceCreationView from './InvoiceCreationView';
 import {
   User, CreditCard, FileText, Settings, Bell, Download, Eye, Calendar, ShieldCheck,
   DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, Phone, Mail,
@@ -17,7 +17,7 @@ const CustomerPortal = () => {
   const [customerData, setCustomerData] = useState(null);
   const [viewMode, setViewMode] = useState('customer'); // 'customer' or 'admin'
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('all');
-  const [showInvoiceCreationModal, setShowInvoiceCreationModal] = useState(false);
+  const [showInvoiceCreation, setShowInvoiceCreation] = useState(false);
 
   // Mock customer data - would come from API
   const mockCustomerData = {
@@ -200,8 +200,6 @@ const CustomerPortal = () => {
       ...prev,
       invoices: [...prev.invoices, invoiceWithId]
     }));
-    
-    setShowInvoiceCreationModal(false);
   };
 
   const PaymentModal = () => (
@@ -467,7 +465,7 @@ const CustomerPortal = () => {
           <div className="flex items-center space-x-4">
             {viewMode === 'admin' && (
               <button 
-                onClick={() => setShowInvoiceCreationModal(true)}
+                onClick={() => setShowInvoiceCreation(true)}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
@@ -919,6 +917,20 @@ const CustomerPortal = () => {
   if (!customerData) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        {/* Show Invoice Creation View */}
+        {showInvoiceCreation && (
+          <InvoiceCreationView
+            customerData={customerData}
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+            onBack={() => setShowInvoiceCreation(false)}
+            onCreateInvoice={handleCreateInvoice}
+          />
+        )}
+        
+        {/* Show main portal when not creating invoice */}
+        {!showInvoiceCreation && (
+          <>
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your account...</p>
@@ -1079,18 +1091,8 @@ const CustomerPortal = () => {
 
       {/* Payment Modal */}
       {showPaymentModal && <PaymentModal />}
-      
-      {/* Invoice Creation Modal */}
-      {showInvoiceCreationModal && (
-        <InvoiceCreationModal
-          isOpen={showInvoiceCreationModal}
-          onClose={() => setShowInvoiceCreationModal(false)}
-          customerData={customerData}
-          formatCurrency={formatCurrency}
-          formatDate={formatDate}
-          onCreateInvoice={handleCreateInvoice}
-        />
-      )}
+          </>
+        )}
     </div>
   );
 };
