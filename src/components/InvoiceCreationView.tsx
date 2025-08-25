@@ -715,134 +715,124 @@ const InvoiceCreationView = ({
                         <div className="text-right">
                           <p className="font-semibold text-gray-900">{formatCurrency(product.total)}</p>
                           <p className="text-sm text-gray-500">
-                            {product.quantity} × {formatCurrency(product.unit_price)}
-                          </p>
-                        </div>
-                      </div>
+               {/* Sales Tax Treatment - Only for Charge and non-tax-exempt customers */}
+               {!customerData?.tax_exempt && addItemType === 'charge' && (
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-3">Sales Tax Treatment</label>
+                   <div className="space-y-3">
+                     <label className="flex items-start">
+                       <input
+                         type="radio"
+                         name="taxTreatment"
+                         value="add-tax"
+                         checked={taxOption === 'add-tax'}
+                         onChange={(e) => setTaxOption(e.target.value)}
+                         className="mt-1 mr-3"
+                       />
+                       <div>
+                         <div className="font-medium text-gray-900">Add Sales Tax</div>
+                         <div className="text-sm text-gray-500">Add 9.75% sales tax to the entered amount</div>
+                       </div>
+                     </label>
+                     <label className="flex items-start">
+                       <input
+                         type="radio"
+                         name="taxTreatment"
+                         value="tax-free"
+                         checked={taxOption === 'tax-free'}
+                         onChange={(e) => setTaxOption(e.target.value)}
+                         className="mt-1 mr-3"
+                       />
+                       <div>
+                         <div className="font-medium text-gray-900">Tax Free</div>
+                         <div className="text-sm text-gray-500">No sales tax applied to this charge</div>
+                       </div>
+                     </label>
+                     <label className="flex items-start">
+                       <input
+                         type="radio"
+                         name="taxTreatment"
+                         value="reverse-tax"
+                         checked={taxOption === 'reverse-tax'}
+                         onChange={(e) => setTaxOption(e.target.value)}
+                         className="mt-1 mr-3"
+                       />
+                       <div>
+                         <div className="font-medium text-gray-900">Reverse Sales Tax</div>
+                         <div className="text-sm text-gray-500">Split entered amount proportionally between base amount and tax</div>
+                       </div>
+                     </label>
+                   </div>
+                 </div>
+               )}
 
-                      {product.options.length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-2">Product Options:</p>
-                          <div className="grid grid-cols-2 gap-2">
-                            {product.options.map((option, index) => (
-                              <div key={index} className="flex items-center space-x-2">
-                                <Settings className="w-3 h-3 text-gray-400" />
-                                <span className="text-sm text-gray-600">
-                                  <strong>{option.name}:</strong> {option.value}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+               {/* Calculation Preview - Only for Charge with amount entered */}
+               {chargeAmount && parseFloat(chargeAmount) > 0 && addItemType === 'charge' && (
+                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                   <h4 className="text-sm font-semibold text-blue-900 mb-2">Calculation Preview</h4>
+                   <div className="space-y-1 text-sm">
+                     <div className="flex justify-between">
+                       <span className="text-blue-700">Amount:</span>
+                       <span className="font-medium text-blue-900">{formatCurrency(breakdown.amount)}</span>
+                     </div>
+                     {breakdown.salesTax > 0 && (
+                       <div className="flex justify-between">
+                         <span className="text-blue-700">Sales Tax:</span>
+                         <span className="font-medium text-blue-900">{formatCurrency(breakdown.salesTax)}</span>
+                       </div>
+                     )}
+                     <div className="flex justify-between border-t border-blue-300 pt-1">
+                       <span className="font-medium text-blue-700">Total:</span>
+                       <span className="font-bold text-blue-900">{formatCurrency(breakdown.total)}</span>
+                     </div>
+                   </div>
+                 </div>
+               )}
 
-  const totals = calculateInvoiceTotal();
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   {addItemType === 'charge' ? 'Charge Reason' : 
+                    addItemType === 'discount' ? 'Discount Reason' : 'Refund Reason'}
+                 </label>
+                 <select
+                   value={selectedReason}
+                   onChange={(e) => setSelectedReason(e.target.value)}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                 >
+                   <option value="">Select {addItemType} reason</option>
+                   {getReasonOptions().map((reason, index) => (
+                     <option key={index} value={reason}>
+                       {reason}
+                     </option>
+                   ))}
+                 </select>
+               </div>
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
-            <div className="flex items-center">
-              <button
-                onClick={onBack}
-                className="mr-4 p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Create New Invoice</h1>
-                <p className="text-gray-600">Create and manage invoice for {customerData?.company_name}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={onBack}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateInvoice}
-                disabled={invoiceData.items.length === 0}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Create Invoice ({formatCurrency(totals.total)})
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">Person Responsible</label>
+                 <select
+                   value={selectedPerson}
+                   onChange={(e) => setSelectedPerson(e.target.value)}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                 >
+                   <option value="">Select person responsible</option>
+                   <option value="sarah-johnson">Sarah Johnson</option>
+                   <option value="michael-chen">Michael Chen</option>
+                   <option value="emily-rodriguez">Emily Rodriguez</option>
+                   <option value="david-thompson">David Thompson</option>
+                 </select>
+               </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Invoice Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Invoice Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Invoice Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
-                  <input
-                    type="text"
-                    value={invoiceData.invoice_number}
-                    onChange={(e) => setInvoiceData(prev => ({ ...prev, invoice_number: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Date</label>
-                  <input
-                    type="date"
-                    value={invoiceData.date}
-                    onChange={(e) => setInvoiceData(prev => ({ ...prev, date: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                  <input
-                    type="date"
-                    value={invoiceData.due_date}
-                    onChange={(e) => setInvoiceData(prev => ({ ...prev, due_date: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Add Items Section */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Invoice Items</h3>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      setAddItemType('charge');
-                      setShowAddItemModal(true);
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm flex items-center space-x-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Charge</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAddItemType('discount');
-                      setShowAddItemModal(true);
-                    }}
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                 <textarea
+                   value={notesValue}
+                   onChange={(e) => setNotesValue(e.target.value)}
+                   rows={3}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                   placeholder="Enter any additional notes about this charge..."
+                 />
+               </div>
                     className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm flex items-center space-x-2"
                   >
                     <Award className="w-4 h-4" />
@@ -862,11 +852,13 @@ const InvoiceCreationView = ({
                     onClick={() => {
                       setAddItemType('order');
                       setShowAddItemModal(true);
-                    }}
+                   className={`flex-1 px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md hover:opacity-90 disabled:bg-gray-400 disabled:cursor-not-allowed ${
+                     addItemType === 'charge' ? 'bg-red-600' : 
+                     addItemType === 'discount' ? 'bg-purple-600' : 'bg-blue-600'
+                   }`}
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm flex items-center space-x-2"
-                  >
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>From Order</span>
+                   {addItemType === 'charge' ? 'Add Charge' : 
+                    addItemType === 'discount' ? 'Apply Discount' : 'Process Refund'}
                   </button>
                 </div>
               </div>
