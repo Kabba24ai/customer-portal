@@ -917,20 +917,6 @@ const CustomerPortal = () => {
   if (!customerData) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        {/* Show Invoice Creation View */}
-        {showInvoiceCreation && (
-          <InvoiceCreationView
-            customerData={customerData}
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-            onBack={() => setShowInvoiceCreation(false)}
-            onCreateInvoice={handleCreateInvoice}
-          />
-        )}
-        
-        {/* Show main portal when not creating invoice */}
-        {!showInvoiceCreation && (
-          <>
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your account...</p>
@@ -941,158 +927,172 @@ const CustomerPortal = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Development Only - View Toggle */}
-      <div className="bg-yellow-100 border-b border-yellow-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium text-yellow-800">🚧 DEVELOPMENT ONLY</span>
-              <span className="text-xs text-yellow-700">|</span>
-              <span className="text-xs text-yellow-700">View Mode:</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setViewMode('customer')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'customer'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                }`}
-              >
-                👤 Customer Portal
-              </button>
-              <button
-                onClick={() => setViewMode('admin')}
-                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'admin'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-                }`}
-              >
-                🔧 Admin Portal
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">{customerData.company_name}</h1>
-              <span className="ml-3 text-sm text-gray-500">
-                {viewMode === 'customer' ? 'Customer Portal' : 'Admin Portal'}
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Bell className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
-              <div className="flex items-center space-x-3">
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{customerData.first_name} {customerData.last_name}</p>
-                  <p className="text-xs text-gray-500">{customerData.email}</p>
+      {/* Show Invoice Creation View */}
+      {showInvoiceCreation && (
+        <InvoiceCreationView
+          customerData={customerData}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          onBack={() => setShowInvoiceCreation(false)}
+          onCreateInvoice={handleCreateInvoice}
+        />
+      )}
+      
+      {/* Show main portal when not creating invoice */}
+      {!showInvoiceCreation && (
+        <>
+          {/* Development Only - View Toggle */}
+          <div className="bg-yellow-100 border-b border-yellow-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between py-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium text-yellow-800">🚧 DEVELOPMENT ONLY</span>
+                  <span className="text-xs text-yellow-700">|</span>
+                  <span className="text-xs text-yellow-700">View Mode:</span>
                 </div>
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setViewMode('customer')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                      viewMode === 'customer'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    👤 Customer Portal
+                  </button>
+                  <button
+                    onClick={() => setViewMode('admin')}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                      viewMode === 'admin'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                    }`}
+                  >
+                    🔧 Admin Portal
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Tab Navigation - Unified for both Customer and Admin */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
-            {[
-              { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
-              { id: 'orders', label: 'Orders', icon: FileText },
-              { id: 'customer-account', label: 'Credit Account', icon: DollarSign },
-              { id: 'invoices', label: 'Invoices', icon: CreditCard },
-              { id: 'account', label: 'Account', icon: Settings },
-              ...(viewMode === 'admin' ? [{ id: 'billing-summary', label: 'Billing Summary', icon: FileText }] : [])
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center px-1 py-4 border-b-2 text-sm font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {tab.label}
-                  {viewMode === 'admin' && (
-                    <span className="ml-1 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
-                      Admin
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-      </div>
+          {/* Navigation Header */}
+          <div className="bg-white shadow-sm border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center py-4">
+                <div className="flex items-center">
+                  <h1 className="text-xl font-bold text-gray-900">{customerData.company_name}</h1>
+                  <span className="ml-3 text-sm text-gray-500">
+                    {viewMode === 'customer' ? 'Customer Portal' : 'Admin Portal'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <Bell className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer" />
+                  <div className="flex items-center space-x-3">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">{customerData.first_name} {customerData.last_name}</p>
+                      <p className="text-xs text-gray-500">{customerData.email}</p>
+                    </div>
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          viewMode === 'customer' ? <DashboardView /> : <AdminDashboardView />
-        )}
-        
-        {/* Orders Tab */}
-        {activeTab === 'orders' && (
-          <OrdersView 
-            customerData={customerData}
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-            getOrderStatusColor={getOrderStatusColor}
-            viewMode={viewMode}
-          />
-        )}
-        
-        {/* Customer Account Tab */}
-        {activeTab === 'customer-account' && (
-          <CreditAccountView 
-            customerData={customerData}
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-            viewMode={viewMode}
-          />
-        )}
-        
-        {/* Invoices Tab */}
-        {activeTab === 'invoices' && <BillingView />}
-        
-        {/* Account Tab */}
-        {activeTab === 'account' && (
-          <AccountView 
-            customerData={customerData}
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-            viewMode={viewMode}
-          />
-        )}
-        
-        {/* Billing Summary Tab - Admin Only */}
-        {activeTab === 'billing-summary' && viewMode === 'admin' && (
-          <AccountBillingSummary 
-            formatCurrency={formatCurrency}
-            formatDate={formatDate}
-          />
-        )}
-      </div>
+          {/* Tab Navigation - Unified for both Customer and Admin */}
+          <div className="bg-white border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <nav className="flex space-x-8">
+                {[
+                  { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
+                  { id: 'orders', label: 'Orders', icon: FileText },
+                  { id: 'customer-account', label: 'Credit Account', icon: DollarSign },
+                  { id: 'invoices', label: 'Invoices', icon: CreditCard },
+                  { id: 'account', label: 'Account', icon: Settings },
+                  ...(viewMode === 'admin' ? [{ id: 'billing-summary', label: 'Billing Summary', icon: FileText }] : [])
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center px-1 py-4 border-b-2 text-sm font-medium transition-colors ${
+                        activeTab === tab.id
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      {tab.label}
+                      {viewMode === 'admin' && (
+                        <span className="ml-1 text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">
+                          Admin
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
 
-      {/* Payment Modal */}
-      {showPaymentModal && <PaymentModal />}
-          </>
-        )}
+          {/* Main Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Dashboard Tab */}
+            {activeTab === 'dashboard' && (
+              viewMode === 'customer' ? <DashboardView /> : <AdminDashboardView />
+            )}
+            
+            {/* Orders Tab */}
+            {activeTab === 'orders' && (
+              <OrdersView 
+                customerData={customerData}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+                getOrderStatusColor={getOrderStatusColor}
+                viewMode={viewMode}
+              />
+            )}
+            
+            {/* Customer Account Tab */}
+            {activeTab === 'customer-account' && (
+              <CreditAccountView 
+                customerData={customerData}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+                viewMode={viewMode}
+              />
+            )}
+            
+            {/* Invoices Tab */}
+            {activeTab === 'invoices' && <BillingView />}
+            
+            {/* Account Tab */}
+            {activeTab === 'account' && (
+              <AccountView 
+                customerData={customerData}
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+                viewMode={viewMode}
+              />
+            )}
+            
+            {/* Billing Summary Tab - Admin Only */}
+            {activeTab === 'billing-summary' && viewMode === 'admin' && (
+              <AccountBillingSummary 
+                formatCurrency={formatCurrency}
+                formatDate={formatDate}
+              />
+            )}
+          </div>
+
+          {/* Payment Modal */}
+          {showPaymentModal && <PaymentModal />}
+        </>
+      )}
     </div>
   );
 };
