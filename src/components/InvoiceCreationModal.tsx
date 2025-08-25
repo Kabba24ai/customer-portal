@@ -459,6 +459,31 @@ const InvoiceCreationModal = ({
                         <Eye className="w-4 h-4 mr-1" />
                         View Details
                       </button>
+                      <button
+                        onClick={() => {
+                          const orderItem = {
+                            type: 'order',
+                            description: `${order.primary_product} - Order ${order.order_number}`,
+                            quantity: 1,
+                            unit_price: order.total,
+                            total: order.total,
+                            baseAmount: order.total,
+                            salesTax: 0,
+                            order_id: order.id,
+                            order_number: order.order_number,
+                            order_date: order.date,
+                            order_status: order.status,
+                            payment_status: order.payment_status,
+                            items_count: order.items_count,
+                            notes: `Complete order ${order.order_number} added to invoice`
+                          };
+                          handleAddItem(orderItem);
+                        }}
+                        className="ml-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm inline-flex items-center"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add Entire Order
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -505,6 +530,42 @@ const InvoiceCreationModal = ({
               {/* Products */}
               <div>
                 <h4 className="text-md font-semibold text-gray-900 mb-4">Products in this Order</h4>
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-blue-900">Add Complete Order</p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        This will add the entire order as a single line item with total: {formatCurrency(selectedOrder.total)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const orderItem = {
+                          type: 'order',
+                          description: `${selectedOrder.primary_product} - Order ${selectedOrder.order_number}`,
+                          quantity: 1,
+                          unit_price: selectedOrder.total,
+                          total: selectedOrder.total,
+                          baseAmount: selectedOrder.total,
+                          salesTax: 0,
+                          order_id: selectedOrder.id,
+                          order_number: selectedOrder.order_number,
+                          order_date: selectedOrder.date,
+                          order_status: selectedOrder.status,
+                          payment_status: selectedOrder.payment_status,
+                          items_count: selectedOrder.items_count,
+                          notes: `Complete order ${selectedOrder.order_number} added to invoice`
+                        };
+                        handleAddItem(orderItem);
+                        setShowOrderDetails(false);
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm flex items-center space-x-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add Complete Order</span>
+                    </button>
+                  </div>
+                </div>
                 <div className="space-y-4">
                   {selectedOrder.products.map((product) => (
                     <div key={product.id} className="border border-gray-200 rounded-lg p-4">
@@ -536,33 +597,6 @@ const InvoiceCreationModal = ({
                           </div>
                         </div>
                       )}
-
-                      <div className="mt-3 pt-3 border-t border-gray-200">
-                        <button
-                          onClick={() => {
-                            const orderItem = {
-                              type: 'order',
-                              description: `${product.name} (from ${selectedOrder.order_number})`,
-                              quantity: product.quantity,
-                              unit_price: product.unit_price,
-                              total: product.total,
-                              baseAmount: product.total,
-                              salesTax: 0,
-                              order_id: selectedOrder.id,
-                              product_id: product.id,
-                              sku: product.sku,
-                              options: product.options,
-                              notes: `Added from order ${selectedOrder.order_number}`
-                            };
-                            handleAddItem(orderItem);
-                            setShowOrderDetails(false);
-                          }}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm flex items-center space-x-2"
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span>Add to Invoice</span>
-                        </button>
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -710,17 +744,15 @@ const InvoiceCreationModal = ({
                           <td className="px-4 py-4">
                             <div>
                               <p className="text-sm font-medium text-gray-900">{item.description}</p>
-                              {item.type === 'order' && item.sku && (
-                                <p className="text-xs text-gray-500">SKU: {item.sku}</p>
-                              )}
-                              {item.type === 'order' && item.options && item.options.length > 0 && (
-                                <div className="mt-1">
-                                  {item.options.map((option, index) => (
-                                    <span key={index} className="inline-block bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded mr-1 mb-1">
-                                      {option.name}: {option.value}
-                                    </span>
-                                  ))}
-                                </div>
+                             {item.type === 'order' && (
+                               <div className="mt-1">
+                                 <p className="text-xs text-gray-500">Order: {item.order_number}</p>
+                                 <p className="text-xs text-gray-500">Date: {formatDate(item.order_date)}</p>
+                                 <p className="text-xs text-gray-500">Items: {item.items_count} products</p>
+                                 <span className="inline-block bg-blue-100 text-xs text-blue-600 px-2 py-1 rounded mt-1">
+                                   Status: {item.order_status}
+                                 </span>
+                               </div>
                               )}
                               {item.notes && (
                                 <p className="text-xs text-gray-500 mt-1">{item.notes}</p>
