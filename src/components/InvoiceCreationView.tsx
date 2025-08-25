@@ -194,97 +194,108 @@ const InvoiceCreationView = ({
 
   // Add Item Modal Component
   const AddItemModal = () => {
-    const [itemData, setItemData] = useState({
-      type: addItemType,
-      description: '',
-      reason: '',
-      quantity: 1,
-      unit_price: 0,
-      total: 0,
-      tax_treatment: 'add-tax',
-      person: '',
-      reference: '',
-      notes: ''
-    });
+    const [chargeAmount, setChargeAmount] = useState('');
+    const [taxOption, setTaxOption] = useState('add-tax');
+    const salesTaxRate = 0.0975; // 9.75%
 
-    const calculateItemTotal = () => {
-      const baseAmount = itemData.quantity * itemData.unit_price;
-      let salesTax = 0;
-      let total = baseAmount;
-
-      if (!customerData?.tax_exempt && itemData.tax_treatment === 'add-tax') {
-        salesTax = baseAmount * salesTaxRate;
-        total = baseAmount + salesTax;
-      } else if (!customerData?.tax_exempt && itemData.tax_treatment === 'reverse-tax') {
-        const reversedBase = baseAmount / (1 + salesTaxRate);
-        salesTax = baseAmount - reversedBase;
-        total = baseAmount;
+    const calculateTaxBreakdown = () => {
+      const amount = parseFloat(chargeAmount) || 0;
+      
+      switch (taxOption) {
+        case 'add-tax':
+          const salesTax = amount * salesTaxRate;
+          return {
+            amount: amount,
+            salesTax: salesTax,
+            total: amount + salesTax
+          };
+        case 'tax-free':
+          return {
+            amount: amount,
+            salesTax: 0,
+            total: amount
+          };
+        case 'reverse-tax':
+          const baseAmount = amount / (1 + salesTaxRate);
+          const reverseTax = amount - baseAmount;
+          return {
+            amount: baseAmount,
+            salesTax: reverseTax,
+            total: amount
+          };
+        default:
+          return { amount: 0, salesTax: 0, total: 0 };
       }
-
-      return { baseAmount, salesTax, total };
     };
 
-    const breakdown = calculateItemTotal();
+    const breakdown = calculateTaxBreakdown();
 
     const handleSubmit = () => {
       const finalItem = {
-        ...itemData,
-        ...breakdown
+        type: addItemType,
+        description: getSelectedReasonText(),
+        quantity: 1,
+        unit_price: breakdown.amount,
+        total: breakdown.total,
+        baseAmount: breakdown.amount,
+        salesTax: breakdown.salesTax,
+        person: document.querySelector('select[name="person"]')?.value || '',
+        reference: document.querySelector('input[name="reference"]')?.value || '',
+        notes: document.querySelector('textarea[name="notes"]')?.value || ''
       };
       handleAddItem(finalItem);
     };
 
-    // Get charge reasons based on item type
+    const getSelectedReasonText = () => {
+      const reasonSelect = document.querySelector('select[name="reason"]');
+      const selectedOption = reasonSelect?.options[reasonSelect.selectedIndex];
+      return selectedOption?.text || '';
+    };
+
     const getReasonOptions = () => {
       switch (addItemType) {
         case 'charge':
           return [
-            { value: '', label: 'Select charge reason' },
-            { value: 'new-rental', label: 'New Rental' },
-            { value: 'rental-extension', label: 'Rental Extension' },
-            { value: 'damages', label: 'Damages' },
-            { value: 'fuel-charge', label: 'Fuel Charge' },
-            { value: 'cleaning-charge', label: 'Cleaning Charge' },
-            { value: 'missing-items', label: 'Missing Items' },
-            { value: 'product-purchase', label: 'Product Purchase' },
-            { value: 'late-fee', label: 'Late Fee' },
-            { value: 'delivery-fee', label: 'Delivery Fee' }
+            'New Rental',
+            'Rental Extension',
+            'Damages',
+            'Fuel Charge',
+            'Cleaning Charge',
+            'Missing Items',
+            'Product Purchase'
           ];
         case 'discount':
           return [
-            { value: '', label: 'Select discount reason' },
-            { value: 'volume-discount', label: 'Volume Discount' },
-            { value: 'repeat-customer', label: 'Repeat Customer Discount' },
-            { value: 'damage-waiver', label: 'Damage Waiver Protection' },
-            { value: 'misc-management', label: 'Misc. Management Discount' },
-            { value: 'promotional', label: 'Promotional Discount' },
-            { value: 'loyalty-program', label: 'Loyalty Program Discount' }
+            'Volume Discount',
+            'Repeat Customer Discount',
+            'Damage Waiver Protection',
+            'Misc. Management Discount'
           ];
         case 'refund':
           return [
-            { value: '', label: 'Select refund reason' },
-            { value: 'damaged-item', label: 'Damaged Item' },
-            { value: 'wrong-item', label: 'Wrong Item Shipped' },
-            { value: 'customer-cancellation', label: 'Customer Cancellation' },
-            { value: 'overcharge', label: 'Billing Overcharge' },
-            { value: 'duplicate-charge', label: 'Duplicate Charge' },
-            { value: 'defective-product', label: 'Defective Product' },
-            { value: 'other', label: 'Other' }
+            'Damaged Item',
+            'Wrong Item Shipped',
+            'Customer Cancellation',
+            'Billing Overcharge',
+            'Duplicate Charge',
+            'Other'
           ];
         default:
-          return [{ value: '', label: 'Select reason' }];
+          return [];
       }
     };
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 {addItemType === 'charge' && <Plus className="w-5 h-5 mr-2 text-red-600" />}
                 {addItemType === 'discount' && <Award className="w-5 h-5 mr-2 text-purple-600" />}
                 {addItemType === 'refund' && <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />}
-                Add {addItemType === 'charge' ? 'Charge' : addItemType === 'discount' ? 'Discount' : 'Refund'}
+                {addItemType === 'charge' ? 'New Charge' : 
+                 addItemType === 'discount' ? 'Apply Discount' : 'Process Refund'}
               </h3>
               <button onClick={() => setShowAddItemModal(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
@@ -294,7 +305,6 @@ const InvoiceCreationView = ({
 
           <div className="p-6">
             <div className="space-y-6">
-              {/* Charge Amount */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {addItemType === 'charge' ? 'Charge Amount' : 
@@ -304,82 +314,75 @@ const InvoiceCreationView = ({
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="number"
-                    value={itemData.unit_price}
-                    onChange={(e) => setItemData(prev => ({ ...prev, unit_price: parseFloat(e.target.value) || 0 }))}
+                    value={chargeAmount}
+                    onChange={(e) => setChargeAmount(e.target.value)}
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                     step="0.01"
-                    min="0"
                   />
                 </div>
               </div>
 
-              {/* Sales Tax Treatment - Only for non-tax-exempt customers */}
-              {!customerData?.tax_exempt && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Sales Tax Treatment</label>
-                  <div className="space-y-3">
-                    <label className="flex items-start">
-                      <input
-                        type="radio"
-                        name="taxTreatment"
-                        value="add-tax"
-                        checked={itemData.tax_treatment === 'add-tax'}
-                        onChange={(e) => setItemData(prev => ({ ...prev, tax_treatment: e.target.value }))}
-                        className="mt-1 mr-3"
-                      />
-                      <div>
-                        <div className="font-medium text-gray-900">Add Sales Tax</div>
-                        <div className="text-sm text-gray-500">Add 9.75% sales tax to the entered amount</div>
-                      </div>
-                    </label>
-                    <label className="flex items-start">
-                      <input
-                        type="radio"
-                        name="taxTreatment"
-                        value="tax-free"
-                        checked={itemData.tax_treatment === 'tax-free'}
-                        onChange={(e) => setItemData(prev => ({ ...prev, tax_treatment: e.target.value }))}
-                        className="mt-1 mr-3"
-                      />
-                      <div>
-                        <div className="font-medium text-gray-900">Tax Free</div>
-                        <div className="text-sm text-gray-500">No sales tax applied to this {addItemType}</div>
-                      </div>
-                    </label>
-                    <label className="flex items-start">
-                      <input
-                        type="radio"
-                        name="taxTreatment"
-                        value="reverse-tax"
-                        checked={itemData.tax_treatment === 'reverse-tax'}
-                        onChange={(e) => setItemData(prev => ({ ...prev, tax_treatment: e.target.value }))}
-                        className="mt-1 mr-3"
-                      />
-                      <div>
-                        <div className="font-medium text-gray-900">Reverse Sales Tax</div>
-                        <div className="text-sm text-gray-500">Split entered amount proportionally between base amount and tax</div>
-                      </div>
-                    </label>
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Sales Tax Treatment</label>
+                <div className="space-y-3">
+                  <label className="flex items-start">
+                    <input
+                      type="radio"
+                      name="taxOption"
+                      value="add-tax"
+                      checked={taxOption === 'add-tax'}
+                      onChange={(e) => setTaxOption(e.target.value)}
+                      className="mt-1 mr-3"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">Add Sales Tax</div>
+                      <div className="text-sm text-gray-500">Add 9.75% sales tax to the entered amount</div>
+                    </div>
+                  </label>
+                  <label className="flex items-start">
+                    <input
+                      type="radio"
+                      name="taxOption"
+                      value="tax-free"
+                      checked={taxOption === 'tax-free'}
+                      onChange={(e) => setTaxOption(e.target.value)}
+                      className="mt-1 mr-3"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">Tax Free</div>
+                      <div className="text-sm text-gray-500">No sales tax applied to this charge</div>
+                    </div>
+                  </label>
+                  <label className="flex items-start">
+                    <input
+                      type="radio"
+                      name="taxOption"
+                      value="reverse-tax"
+                      checked={taxOption === 'reverse-tax'}
+                      onChange={(e) => setTaxOption(e.target.value)}
+                      className="mt-1 mr-3"
+                    />
+                    <div>
+                      <div className="font-medium text-gray-900">Reverse Sales Tax</div>
+                      <div className="text-sm text-gray-500">Split entered amount proportionally between base amount and tax</div>
+                    </div>
+                  </label>
                 </div>
-              )}
+              </div>
 
-              {/* Calculation Preview */}
-              {itemData.unit_price > 0 && (
+              {chargeAmount && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-blue-900 mb-2">Calculation Preview</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-blue-700">Amount:</span>
-                      <span className="font-medium text-blue-900">{formatCurrency(breakdown.baseAmount)}</span>
+                      <span className="font-medium text-blue-900">{formatCurrency(breakdown.amount)}</span>
                     </div>
-                    {!customerData?.tax_exempt && breakdown.salesTax > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-blue-700">Sales Tax:</span>
-                        <span className="font-medium text-blue-900">{formatCurrency(breakdown.salesTax)}</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Sales Tax:</span>
+                      <span className="font-medium text-blue-900">{formatCurrency(breakdown.salesTax)}</span>
+                    </div>
                     <div className="flex justify-between border-t border-blue-300 pt-1">
                       <span className="font-medium text-blue-700">Total Balance Change:</span>
                       <span className="font-bold text-blue-900">{formatCurrency(breakdown.total)}</span>
@@ -388,43 +391,28 @@ const InvoiceCreationView = ({
                 </div>
               )}
 
-              {/* Reason Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {addItemType === 'charge' ? 'Charge Reason' : 
                    addItemType === 'discount' ? 'Discount Reason' : 'Refund Reason'}
                 </label>
                 <select
-                  value={itemData.reason}
-                  onChange={(e) => setItemData(prev => ({ ...prev, reason: e.target.value }))}
+                  name="reason"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {getReasonOptions().map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                  <option value="">Select {addItemType} reason</option>
+                  {getReasonOptions().map((reason, index) => (
+                    <option key={index} value={reason}>
+                      {reason}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <input
-                  type="text"
-                  value={itemData.description}
-                  onChange={(e) => setItemData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={`Enter ${addItemType} description...`}
-                />
-              </div>
-
-              {/* Person Responsible */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Person Responsible</label>
                 <select
-                  value={itemData.person}
-                  onChange={(e) => setItemData(prev => ({ ...prev, person: e.target.value }))}
+                  name="person"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select person responsible</option>
@@ -432,30 +420,26 @@ const InvoiceCreationView = ({
                   <option value="michael-chen">Michael Chen</option>
                   <option value="emily-rodriguez">Emily Rodriguez</option>
                   <option value="david-thompson">David Thompson</option>
-                  <option value="jennifer-williams">Jennifer Williams</option>
                 </select>
               </div>
 
-              {/* Reference */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Reference (Optional)</label>
                 <input
                   type="text"
-                  value={itemData.reference}
-                  onChange={(e) => setItemData(prev => ({ ...prev, reference: e.target.value }))}
+                  name="reference"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter reference number or ID..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
                 <textarea
-                  value={itemData.notes}
-                  onChange={(e) => setItemData(prev => ({ ...prev, notes: e.target.value }))}
+                  name="notes"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  placeholder="Enter any additional notes..."
+                  placeholder={`Describe the reason for this ${addItemType}...`}
                 />
               </div>
             </div>
@@ -469,10 +453,10 @@ const InvoiceCreationView = ({
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={!itemData.description || itemData.unit_price <= 0 || !itemData.reason}
                 className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Add {addItemType === 'charge' ? 'Charge' : addItemType === 'discount' ? 'Discount' : 'Refund'}
+                {addItemType === 'charge' ? 'Add Charge' : 
+                 addItemType === 'discount' ? 'Apply Discount' : 'Process Refund'}
               </button>
             </div>
           </div>
