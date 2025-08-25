@@ -486,7 +486,7 @@ const InvoiceCreationView = ({
                         className="ml-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm inline-flex items-center"
                       >
                         <Plus className="w-4 h-4 mr-1" />
-                        Add All Products
+                        Add to Invoice
                       </button>
                     </td>
                   </tr>
@@ -539,7 +539,7 @@ const InvoiceCreationView = ({
                     <div>
                       <p className="text-sm font-medium text-blue-900">Add All Products from Order</p>
                       <p className="text-xs text-blue-700 mt-1">
-                        This will add each product as individual line items. Total: {formatCurrency(selectedOrder.total)}
+                        This will add each product as individual line items to the invoice. Total: {formatCurrency(selectedOrder.total)}
                       </p>
                     </div>
                     <button
@@ -570,7 +570,7 @@ const InvoiceCreationView = ({
                       className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm flex items-center space-x-2"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>Add All Products</span>
+                      <span>Add to Invoice</span>
                     </button>
                   </div>
                 </div>
