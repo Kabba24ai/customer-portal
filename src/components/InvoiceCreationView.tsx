@@ -469,6 +469,78 @@ const InvoiceCreationView = ({
                 </div>
               )}
 
+              {!customerData?.tax_exempt && addItemType === 'charge' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Sales Tax Treatment</label>
+                  <div className="space-y-3">
+                    <label className="flex items-start">
+                      <input
+                        type="radio"
+                        name="taxTreatment"
+                        value="add-tax"
+                        checked={taxOption === 'add-tax'}
+                        onChange={(e) => setTaxOption(e.target.value)}
+                        className="mt-1 mr-3"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900">Add Sales Tax</div>
+                        <div className="text-sm text-gray-500">Add 9.75% sales tax to the entered amount</div>
+                      </div>
+                    </label>
+                    <label className="flex items-start">
+                      <input
+                        type="radio"
+                        name="taxTreatment"
+                        value="tax-free"
+                        checked={taxOption === 'tax-free'}
+                        onChange={(e) => setTaxOption(e.target.value)}
+                        className="mt-1 mr-3"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900">Tax Free</div>
+                        <div className="text-sm text-gray-500">No sales tax applied to this charge</div>
+                      </div>
+                    </label>
+                    <label className="flex items-start">
+                      <input
+                        type="radio"
+                        name="taxTreatment"
+                        value="reverse-tax"
+                        checked={taxOption === 'reverse-tax'}
+                        onChange={(e) => setTaxOption(e.target.value)}
+                        className="mt-1 mr-3"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900">Reverse Sales Tax</div>
+                        <div className="text-sm text-gray-500">Split entered amount proportionally between base amount and tax</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {(chargeAmount && parseFloat(chargeAmount) > 0) && addItemType === 'charge' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-blue-900 mb-2">Calculation Preview</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Amount:</span>
+                      <span className="font-medium text-blue-900">{formatCurrency(breakdown.amount)}</span>
+                    </div>
+                    {!customerData?.tax_exempt && breakdown.salesTax > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-blue-700">Sales Tax:</span>
+                        <span className="font-medium text-blue-900">{formatCurrency(breakdown.salesTax)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t border-blue-300 pt-1">
+                      <span className="font-medium text-blue-700">Total:</span>
+                      <span className="font-bold text-blue-900">{formatCurrency(breakdown.total)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Reference (Optional)</label>
                 <input
