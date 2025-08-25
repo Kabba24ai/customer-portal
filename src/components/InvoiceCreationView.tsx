@@ -363,40 +363,6 @@ const InvoiceCreationView = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {addItemType === 'charge' ? 'Charge Reason' : 
-                   addItemType === 'discount' ? 'Discount Reason' : 'Refund Reason'}
-                </label>
-                <select
-                  value={selectedReason}
-                  onChange={(e) => setSelectedReason(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select {addItemType} reason</option>
-                  {getReasonOptions().map((reason, index) => (
-                    <option key={index} value={reason}>
-                      {reason}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Person Responsible</label>
-                <select
-                  value={selectedPerson}
-                  onChange={(e) => setSelectedPerson(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select person responsible</option>
-                  <option value="sarah-johnson">Sarah Johnson</option>
-                  <option value="michael-chen">Michael Chen</option>
-                  <option value="emily-rodriguez">Emily Rodriguez</option>
-                  <option value="david-thompson">David Thompson</option>
-                </select>
-              </div>
-
               {!customerData?.tax_exempt && addItemType === 'charge' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">Sales Tax Treatment</label>
@@ -447,7 +413,7 @@ const InvoiceCreationView = ({
                 </div>
               )}
 
-              {(chargeAmount && parseFloat(chargeAmount) > 0) && addItemType === 'charge' && (
+              {chargeAmount && addItemType === 'charge' && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-blue-900 mb-2">Calculation Preview</h4>
                   <div className="space-y-1 text-sm">
@@ -455,20 +421,51 @@ const InvoiceCreationView = ({
                       <span className="text-blue-700">Amount:</span>
                       <span className="font-medium text-blue-900">{formatCurrency(breakdown.amount)}</span>
                     </div>
-                    {!customerData?.tax_exempt && breakdown.salesTax > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-blue-700">Sales Tax:</span>
-                        <span className="font-medium text-blue-900">{formatCurrency(breakdown.salesTax)}</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Sales Tax:</span>
+                      <span className="font-medium text-blue-900">{formatCurrency(breakdown.salesTax)}</span>
+                    </div>
                     <div className="flex justify-between border-t border-blue-300 pt-1">
-                      <span className="font-medium text-blue-700">Total:</span>
+                      <span className="font-medium text-blue-700">Total Balance Change:</span>
                       <span className="font-bold text-blue-900">{formatCurrency(breakdown.total)}</span>
                     </div>
                   </div>
                 </div>
               )}
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {addItemType === 'charge' ? 'Charge Reason' : 
+                   addItemType === 'discount' ? 'Discount Reason' : 'Refund Reason'}
+                </label>
+                <select
+                  value={selectedReason}
+                  onChange={(e) => setSelectedReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select {addItemType} reason</option>
+                  {getReasonOptions().map((reason, index) => (
+                    <option key={index} value={reason}>
+                      {reason}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Person Responsible</label>
+                <select
+                  value={selectedPerson}
+                  onChange={(e) => setSelectedPerson(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select person responsible</option>
+                  <option value="sarah-johnson">Sarah Johnson</option>
+                  <option value="michael-chen">Michael Chen</option>
+                  <option value="emily-rodriguez">Emily Rodriguez</option>
+                  <option value="david-thompson">David Thompson</option>
+                </select>
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Reference (Optional)</label>
