@@ -24,6 +24,8 @@ const InvoiceCreationView = ({
   const [addItemType, setAddItemType] = useState('charge'); // 'charge', 'discount', 'refund', 'order'
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [showEditItemModal, setShowEditItemModal] = useState(false);
 
   // Mock order data with detailed product information
   const mockOrders = [
@@ -179,6 +181,30 @@ const InvoiceCreationView = ({
     }));
   };
 
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setAddItemType(item.type);
+    setShowEditItemModal(true);
+  };
+
+  const handleUpdateItem = (updatedItemData) => {
+    const updatedItem = {
+      ...editingItem,
+      ...updatedItemData,
+      updated_at: new Date().toISOString()
+    };
+
+    setInvoiceData(prev => ({
+      ...prev,
+      items: prev.items.map(item => 
+        item.id === editingItem.id ? updatedItem : item
+      )
+    }));
+
+    setShowEditItemModal(false);
+    setEditingItem(null);
+  };
+
   const handleCreateInvoice = () => {
     const totals = calculateInvoiceTotal();
     const newInvoice = {
@@ -193,9 +219,16 @@ const InvoiceCreationView = ({
   };
 
   // Add Item Modal Component
-  const AddItemModal = () => {
-    const [chargeAmount, setChargeAmount] = useState('');
-    const [taxOption, setTaxOption] = useState('add-tax');
+  const AddItemModal = ({ isEdit = false }) => {
+    const initialAmount = isEdit ? editingItem?.unit_price?.toString() || '' : '';
+    const initialTaxOption = isEdit ? (editingItem?.salesTax > 0 ? 'add-tax' : 'tax-free') : 'add-tax';
+    
+    const [chargeAmount, setChargeAmount] = useState(initialAmount);
+    const [taxOption, setTaxOption] = useState(initialTaxOption);
+    const [selectedReason, setSelectedReason] = useState(isEdit ? editingItem?.description || '' : '');
+    const [selectedPerson, setSelectedPerson] = useState(isEdit ? editingItem?.person || '' : '');
+    const [referenceValue, setReferenceValue] = useState(isEdit ? editingItem?.reference || '' : '');
+    const [notesValue, setNotesValue] = useState(isEdit ? editingItem?.notes || '' : '');
     const salesTaxRate = 0.0975; // 9.75%
 
     const calculateTaxBreakdown = () => {
@@ -233,23 +266,22 @@ const InvoiceCreationView = ({
     const handleSubmit = () => {
       const finalItem = {
         type: addItemType,
-        description: getSelectedReasonText(),
+        description: selectedReason,
         quantity: 1,
         unit_price: breakdown.amount,
         total: breakdown.total,
         baseAmount: breakdown.amount,
         salesTax: breakdown.salesTax,
-        person: document.querySelector('select[name="person"]')?.value || '',
-        reference: document.querySelector('input[name="reference"]')?.value || '',
-        notes: document.querySelector('textarea[name="notes"]')?.value || ''
+        person: selectedPerson,
+        reference: referenceValue,
+        notes: notesValue
       };
-      handleAddItem(finalItem);
-    };
-
-    const getSelectedReasonText = () => {
-      const reasonSelect = document.querySelector('select[name="reason"]');
-      const selectedOption = reasonSelect?.options[reasonSelect.selectedIndex];
-      return selectedOption?.text || '';
+      
+      if (isEdit) {
+        handleUpdateItem(finalItem);
+      } else {
+        handleAddItem(finalItem);
+      }
     };
 
     const getReasonOptions = () => {
@@ -295,10 +327,17 @@ const InvoiceCreationView = ({
                 {addItemType === 'charge' && <Plus className="w-5 h-5 mr-2 text-red-600" />}
                 {addItemType === 'discount' && <Award className="w-5 h-5 mr-2 text-purple-600" />}
                 {addItemType === 'refund' && <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />}
-                {addItemType === 'charge' ? 'New Charge' : 
+                {isEdit ? `Edit ${addItemType === 'charge' ? 'Charge' : addItemType === 'discount' ? 'Discount' : 'Refund'}` :
+                 addItemType === 'charge' ? 'New Charge' : 
                  addItemType === 'discount' ? 'Apply Discount' : 'Process Refund'}
               </h3>
-              <button onClick={() => setShowAddItemModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => {
+                setShowAddItemModal(false);
+                if (isEdit) {
+                  setShowEditItemModal(false);
+                  setEditingItem(null);
+                }
+              }} className="text-gray-400 hover:text-gray-600">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -400,7 +439,8 @@ const InvoiceCreationView = ({
                    addItemType === 'discount' ? 'Discount Reason' : 'Refund Reason'}
                 </label>
                 <select
-                  name="reason"
+                  value={selectedReason}
+                  onChange={(e) => setSelectedReason(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select {addItemType} reason</option>
@@ -415,7 +455,8 @@ const InvoiceCreationView = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Person Responsible</label>
                 <select
-                  name="person"
+                  value={selectedPerson}
+                  onChange={(e) => setSelectedPerson(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select person responsible</option>
@@ -430,7 +471,8 @@ const InvoiceCreationView = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">Reference (Optional)</label>
                 <input
                   type="text"
-                  name="reference"
+                  value={referenceValue}
+                  onChange={(e) => setReferenceValue(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter reference number or ID..."
                 />
@@ -439,7 +481,8 @@ const InvoiceCreationView = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
                 <textarea
-                  name="notes"
+                  value={notesValue}
+                  onChange={(e) => setNotesValue(e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   placeholder={`Describe the reason for this ${addItemType}...`}
@@ -451,7 +494,13 @@ const InvoiceCreationView = ({
             <div className="p-6 border-t border-gray-200 flex-shrink-0">
               <div className="flex space-x-3">
                 <button
-                  onClick={() => setShowAddItemModal(false)}
+                  onClick={() => {
+                    setShowAddItemModal(false);
+                    if (isEdit) {
+                      setShowEditItemModal(false);
+                      setEditingItem(null);
+                    }
+                  }}
                   className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
                 >
                   Cancel
@@ -460,7 +509,8 @@ const InvoiceCreationView = ({
                   onClick={handleSubmit}
                   className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {addItemType === 'charge' ? 'Add Charge' : 
+                  {isEdit ? `Update ${addItemType === 'charge' ? 'Charge' : addItemType === 'discount' ? 'Discount' : 'Refund'}` :
+                   addItemType === 'charge' ? 'Add Charge' : 
                    addItemType === 'discount' ? 'Apply Discount' : 'Process Refund'}
                 </button>
               </div>
@@ -871,6 +921,12 @@ const InvoiceCreationView = ({
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                             <button
+                              onClick={() => handleEditItem(item)}
+                              className="text-blue-600 hover:text-blue-900 mr-3"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
                               onClick={() => handleRemoveItem(item.id)}
                               className="text-red-600 hover:text-red-900"
                             >
@@ -972,6 +1028,7 @@ const InvoiceCreationView = ({
 
       {/* Sub-modals */}
       {showAddItemModal && addItemType !== 'order' && <AddItemModal />}
+      {showEditItemModal && <AddItemModal isEdit={true} />}
       {showAddItemModal && addItemType === 'order' && <OrderSelectionModal />}
       {showOrderDetails && <OrderDetailsModal />}
     </div>
